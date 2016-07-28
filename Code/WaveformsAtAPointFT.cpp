@@ -148,11 +148,18 @@ WaveformAtAPointFT(const GWFrames::Waveform& W,
   double Dt_dimensionful = 0.0;
   {
     // Conversion of time to seconds from geometric units
-    // Fundamental constants
-    const double G    = 6.67259e-11;     // Units of m^3 kg^-1 s^-2
-    const double c    = 299792458;       // Units of m / s
-    const double Msol = 1.98892e30;      // Units of kg
-    const double TotalMassInSeconds = TotalMass * Msol * G / cube(c);
+
+    // Note that SolarMass * G has been measured to much better accuracy
+    // than either the solar mass (in kg) or G (in m^3 kg^-1 s^-2).
+    // The value below comes from http://ssd.jpl.nasa.gov/?constants
+    // and has an error bar of 8x10^9, i.e. 8 in the last digit.
+    const double GMsol = 1.32712440018e20; // Solar mass * G, in m^3 s^-2
+
+    // The value of c below is exact.  The length of the meter is defined
+    // from this constant and the definition of the second.
+    const double c    = 299792458;       // Units of m/s.
+
+    const double TotalMassInSeconds = TotalMass * GMsol / cube(c);
     Dt_dimensionful = Dt * TotalMassInSeconds;
     const vector<double> PhysicalTimes = TotalMassInSeconds * NewTimes;
     mFreqs = WU::TimeToPositiveFrequencies(PhysicalTimes);
