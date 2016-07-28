@@ -225,8 +225,17 @@ namespace GWFrames {
   {
     /// \param[in] B WaveformAtAPointFT to compute match with
     /// \param[in] InversePSD Spectrum used to weight contributions by frequencies to match
-    /// \param[out] timeOffset Time offset (in seconds) between the waveforms
-    /// \param[out] phaseOffset Phase offset used between the waveforms
+    /// \param[out] timeOffset Time offset (in seconds) between the waveforms.
+    ///             Sign is chosen so that in the time domain, *this(t)
+    ///             corresponds to B(t-timeOffset), i.e. the waveform B
+    ///             is shifted to the right by timeOffset.  Equivalently,
+    ///             in the frequency domain, *this is compared to
+    ///             B*exp(-2pi*i*f*timeOffset)
+    /// \param[out] phaseOffset Phase offset used between the waveforms.
+    ///             Sign is chosen so that in the time domain, Arg(*this)
+    ///             corresponds to Arg(B)+phaseOffset.
+    ///             Equivalently, in the frequency domain, *this is compared to
+    ///             B*exp(i*phaseOffset)
     /// \param[out] match Match between the two waveforms
     const unsigned int n = NFreq(); // Only positive frequencies are stored in t
     const unsigned int N = 2*(n-1);  // But this is how many there really are
