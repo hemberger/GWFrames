@@ -809,6 +809,31 @@ int GWFrames::Waveform::EllMax() const {
   return ell;
 }
 
+/// Given a particular L and M, find the first zero crossing of the
+/// real part of the (L,M) mode, and then return the time
+/// of the 2*NCycles'th zero crossing after that.
+///
+/// If using this on a waveform that contains junk radiation, you
+/// will likely get a result that is not useful.
+double GWFrames::Waveform::FindTimeAfterNCycles(const int NCycles,
+                                                const int L, const int M) const{
+  const unsigned int mode = FindModeIndex(L,M);
+  unsigned int i          = 0;
+  const double re         = std::real(data[mode][0]);
+  const double Sign       = re/std::abs(re);
+
+  // Find the first zero crossing
+  while(std::real(data[mode][i++])*Sign>0) { }
+
+  // Now find the following 2*N zero crossings
+  for(unsigned int j=0; j<NCycles; ++j) {
+    while(std::real(data[mode][i++])*Sign<0) { }
+    while(std::real(data[mode][i++])*Sign>0) { }
+  }
+
+  return t[i];
+}
+
 /// Find index of mode with given (l,m) data.
 unsigned int GWFrames::Waveform::FindModeIndex(const int l, const int m) const {
   const unsigned int i_expected = l*(l+1) + m - SpinWeight()*SpinWeight();

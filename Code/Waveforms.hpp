@@ -137,6 +137,8 @@ namespace GWFrames {
 
   public: // Data characterization
     int EllMax() const;
+    double FindTimeAfterNCycles(const int NCycles, const int L, const int M)
+      const;
     unsigned int FindModeIndex(const int L, const int M) const;
     unsigned int FindModeIndexWithoutError(const int L, const int M) const;
     std::vector<std::complex<double> > DataDot(const unsigned int Mode) const;
