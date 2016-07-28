@@ -30,7 +30,15 @@ namespace GWFrames {
                        const double DetectorResponseAmp=1.0,
                        const double DetectorResponsePhase=0.0,
                        const unsigned int ExtraZeroPadPowers=0);
-
+   WaveformAtAPointFT(const GWFrames::Waveform& W,
+                      const double Dt,
+                      const std::vector<double>& Direction,
+                      const double TotalMass, // In solar masses
+                      const double WindowBeginTime,
+                      const double WindowEndTime,
+                      const double DetectorResponseAmp=1.0,
+                      const double DetectorResponsePhase=0.0,
+                      const unsigned int ExtraZeroPadPowers=0);
   public: // Access functions
     /// Returns the physical frequencies in Hz
     const std::vector<double>& F() const { return mFreqs; }

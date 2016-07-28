@@ -37,17 +37,44 @@ namespace {
 
 }
 
-GWFrames::WaveformAtAPointFT::WaveformAtAPointFT(const GWFrames::Waveform& W,
-                                                 const double Dt,
-                                                 const double Vartheta,
-                                                 const double Varphi,
-                                                 const double TotalMass,
-                                                 const unsigned int WindowNCycles,
-                                                 const double DetectorResponseAmp,
-                                                 const double DetectorResponsePhase,
-                                                 const unsigned int ExtraZeroPadPowers)
-: mDt(Dt), mVartheta(Vartheta), mVarphi(Varphi), mNormalized(false)
+GWFrames::WaveformAtAPointFT::
+WaveformAtAPointFT(const GWFrames::Waveform& W,
+                   const double Dt,
+                   const double Vartheta,
+                   const double Varphi,
+                   const double TotalMass,
+                   const unsigned int WindowNCycles,
+                   const double DetectorResponseAmp,
+                   const double DetectorResponsePhase,
+                   const unsigned int ExtraZeroPadPowers)
+  : mDt(Dt), mVartheta(Vartheta), mVarphi(Varphi), mNormalized(false)
 {
+  cerr << "The old constructor of WaveformAtAPointFT has been disabled.\n"
+       << "Please use the new constructor, which takes 'WindowEndTime'\n"
+       << "instead of 'WindowNCycles' and takes 'Direction' instead of\n"
+       << "'Vartheta' and 'Varphi'." << endl;
+  throw(GWFrames_NotYetImplemented);
+}
+
+GWFrames::WaveformAtAPointFT::
+WaveformAtAPointFT(const GWFrames::Waveform& W,
+                   const double Dt,
+                   const std::vector<double>& Direction,
+                   const double TotalMass,
+                   const double WindowBeginTime,
+                   const double WindowEndTime,
+                   const double DetectorResponseAmp,
+                   const double DetectorResponsePhase,
+                   const unsigned int ExtraZeroPadPowers)
+  : mDt(Dt), mNormalized(false)
+{
+  if(Direction.size() != 2) {
+    cerr << "Direction should be vector (theta,phi) of size 2, not size "
+         << Direction.size() << endl;
+    throw(GWFrames_VectorSizeMismatch);
+  }
+  mVartheta=Direction[0];
+  mVarphi  =Direction[1];
 
   // Interpolate to an even time spacing dt whose size is the next power of 2
   // Then zero pad for additional powers of 2 if requested (may be needed for
@@ -60,8 +87,28 @@ GWFrames::WaveformAtAPointFT::WaveformAtAPointFT(const GWFrames::Waveform& W,
     NewTimes[i] = W.T(0) + i*Dt;
   }
 
+  // Sanity checks
+  if(WindowBeginTime >= WindowEndTime) {
+    cerr << "WindowEndTime " << WindowEndTime
+         << " should be > WindowBeginTime " << WindowBeginTime << endl;
+    throw(GWFrames_EmptyIntersection);
+  }
+  if(WindowEndTime < NewTimes[0] || WindowEndTime > NewTimes[N2-1]) {
+    cerr << "WindowEndTime " << WindowEndTime
+         << " out of range [" << NewTimes[0] << "," << NewTimes[N2-1]
+         << "]" << endl;
+    throw(GWFrames_EmptyIntersection);
+  }
+  if(WindowBeginTime < NewTimes[0] || WindowBeginTime > NewTimes[N2-1]) {
+    cerr << "WindowBeginTime " << WindowBeginTime
+         << " out of range [" << NewTimes[0] << "," << NewTimes[N2-1]
+         << "]" << endl;
+    throw(GWFrames_EmptyIntersection);
+  }
+
   GWFrames::Waveform W2 = W.Interpolate(NewTimes, true);
-  const vector<complex<double> > ComplexHData = W2.EvaluateAtPoint(Vartheta, Varphi);
+  const vector<complex<double> > ComplexHData = W2.EvaluateAtPoint(mVartheta,
+                                                                   mVarphi);
 
   // Construct initial real,imag H as a function of time
   vector<double> InitRealT(ComplexHData.size());
@@ -82,27 +129,19 @@ GWFrames::WaveformAtAPointFT::WaveformAtAPointFT(const GWFrames::Waveform& W,
     RealT = InitRealT;
   }
 
-  {
-    // Zero up to the first zero crossing for continuity
-    unsigned int i=0;
-    const double Sign = RealT[0] / std::abs(RealT[0]);
-    while(RealT[i++]*Sign>0) { }
-    for(unsigned int j=0; j<i; ++j) {
-      RealT[j] = 0.0;
-    }
-    // Now find the following 2*N zero crossings
-    const unsigned int i0 = i;
-    const double t0 = NewTimes[i0];
-    for(unsigned int j=0; j<WindowNCycles; ++j) {
-      while(RealT[i++]*Sign<0) { }
-      while(RealT[i++]*Sign>0) { }
-    }
-    // And window the data
-    const unsigned int i1 = i;
-    const double t1 = NewTimes[i1];
-    for(unsigned int j=i0; j<=i1; j++) {
-      RealT[j] *= BumpFunction(NewTimes[j], t0, t1);
-    }
+  // Window the data:
+  // 1. Determine the window begin index
+  unsigned int i0 = 0;
+  while(NewTimes[i0++]<WindowBeginTime) {};
+  // 2. Determine the window end index
+  unsigned int i1 = i0;
+  while(NewTimes[i1++]<WindowEndTime) {};
+  // 3. Window
+  for(unsigned int j=0; j<i0; j++) {    // zero everything before t0
+    RealT[j] = 0;
+  }
+  for(unsigned int j=i0; j<=i1; j++) {  // Window afterwards.
+    RealT[j] *= BumpFunction(NewTimes[j], WindowBeginTime, WindowEndTime);
   }
 
   // Set up the frequency domain (in Hz)

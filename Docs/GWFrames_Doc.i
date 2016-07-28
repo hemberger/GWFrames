@@ -1861,11 +1861,17 @@ Apply a boost to Psi4 data.
   ----------
     const Waveform& W
     const double Dt
-    const double Vartheta
-    const double Varphi
+    const std::vector<double> Direction
+      The direction vector is (vartheta,varphi), the polar and azimuthal
+      angle from the source to the observer.
     const double TotalMass
-    const unsigned int WindowNCycles = 1
-    const double DetectorResponseAmp = 1.0
+    const double WindowBeginTime
+    const double WindowEndTime
+      The waveform is set to zero for t <= WindowBeginTime.
+      For WindowBeginTime < t < WindowEndTime, the waveform
+      is multiplied by a window function that is zero at
+      t=WindowBeginTime and smoothly goes to 1 at t=WindowEndTime.
+    const double DetectorResponseAmp   = 1.0
     const double DetectorResponsePhase = 0.0
   
   Returns
