@@ -129,19 +129,11 @@ WaveformAtAPointFT(const GWFrames::Waveform& W,
     RealT = InitRealT;
   }
 
-  // Window the data:
-  // 1. Determine the window begin index
-  unsigned int i0 = 0;
-  while(NewTimes[i0++]<WindowBeginTime) {};
-  // 2. Determine the window end index
-  unsigned int i1 = i0;
-  while(NewTimes[i1++]<WindowEndTime) {};
-  // 3. Window
-  for(unsigned int j=0; j<i0; j++) {    // zero everything before t0
-    RealT[j] = 0;
-  }
-  for(unsigned int j=i0; j<=i1; j++) {  // Window afterwards.
+  // Window the data (NOTE: this zeros everything before WindowBeginTime)
+  for(unsigned int j=0; j<NewTimes.size(); j++) {
     RealT[j] *= BumpFunction(NewTimes[j], WindowBeginTime, WindowEndTime);
+    // For speed, break after WindowEndTime to avoid multiplying by 1
+    if (NewTimes[j] >= WindowEndTime) { break; }
   }
 
   // Set up the frequency domain (in Hz)
