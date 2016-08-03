@@ -93,15 +93,15 @@ WaveformAtAPointFT(const GWFrames::Waveform& W,
          << " should be > WindowBeginTime " << WindowBeginTime << endl;
     throw(GWFrames_EmptyIntersection);
   }
-  if(WindowEndTime < NewTimes[0] || WindowEndTime > NewTimes[N2-1]) {
+  if(WindowEndTime < NewTimes[0] || WindowEndTime > NewTimes.back()) {
     cerr << "WindowEndTime " << WindowEndTime
-         << " out of range [" << NewTimes[0] << "," << NewTimes[N2-1]
+         << " out of range [" << NewTimes[0] << "," << NewTimes.back()
          << "]" << endl;
     throw(GWFrames_EmptyIntersection);
   }
-  if(WindowBeginTime < NewTimes[0] || WindowBeginTime > NewTimes[N2-1]) {
+  if(WindowBeginTime < NewTimes[0] || WindowBeginTime > NewTimes.back()) {
     cerr << "WindowBeginTime " << WindowBeginTime
-         << " out of range [" << NewTimes[0] << "," << NewTimes[N2-1]
+         << " out of range [" << NewTimes[0] << "," << NewTimes.back()
          << "]" << endl;
     throw(GWFrames_EmptyIntersection);
   }
